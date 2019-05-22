@@ -11,7 +11,7 @@ const execa = require('execa');
 const {getConfig} = require('./scripts/getConfig');
 
 async function start(cmd) {
-    const {target, buildPath} = getConfig(cmd);
+    const {target, buildPath, env} = getConfig(cmd);
 
     const {
         watch,
@@ -19,10 +19,14 @@ async function start(cmd) {
     } = require(buildPath);
 
     const options = {
-        target
+        target,
+        env
     };
     process.env.NODE_ENV = 'development';
     process.env.MARS_CLI_OPTIONS = JSON.stringify(options);
+    process.env.MARS_CLI_TARGET = target;
+    process.env.MARS_CLI_DEST = env ? `./dist-${env}` : './dist-h5';
+    process.env.MARS_ENV_TARGET = `${target}${env ? `:${env}` : ''}`;
 
     clean(options).once('stop', () => {
         watch(options).once('stop', () => {

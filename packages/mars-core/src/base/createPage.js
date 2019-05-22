@@ -11,14 +11,16 @@
 import Vue from './vue/index';
 import {mark, measure} from '../helper/perf';
 import config from '../config';
+import {state} from './state';
 
-export function makeCreatePage(pageMixin, handleProxy, setData, callHook) {
+export function makeCreatePage(pageMixin, {handleProxy, handleModel}, setData, callHook) {
     return function (options) {
         options.mixins = [pageMixin];
 
         return {
             data: {},
             handleProxy,
+            handleModel,
             onLoad(...args) {
                 const pages = getApp().__pages__;
                 const uid = this.__uid__ !== undefined ? this.__uid__ : ++pages.uid;
@@ -29,6 +31,10 @@ export function makeCreatePage(pageMixin, handleProxy, setData, callHook) {
                     const perfTagStart = `${this.route}-start`;
                     // const perfTagEnd = `${this.route}-end`;
                     mark(perfTagStart);
+                }
+
+                if (state.store && !options.store) {
+                    options.store = state.store;
                 }
 
                 const vm = new Vue(options);

@@ -12,6 +12,7 @@ const PluginError = gutil.PluginError;
 const PLUGIN_NAME = 'gulp-mars';
 const path = require('path');
 const mkdirp = require('mkdirp');
+const slash = require('slash');
 
 const {parse: sfcParser} = require('./compiler/sfc/parser');
 const {compile: sfcCompiler} = require('./compiler/sfc/compiler');
@@ -28,7 +29,7 @@ function compile(file, opt, compilers) {
         }
     } = opt;
     const rPath = path.relative(file.base, file.path);
-    const fPath = path.resolve(file.cwd, opt.dest, rPath).replace(/\.vue$/, '');
+    const fPath = slash(path.resolve(file.cwd, opt.dest, rPath).replace(/\.vue$/, ''));
     const baseName = path.basename(fPath);
 
     let coreRelativePath = path.join(
@@ -39,11 +40,11 @@ function compile(file, opt, compilers) {
         opt.coreDir || 'common'
     );
     coreRelativePath = coreRelativePath[0] === '.' ? coreRelativePath : './' + coreRelativePath;
-    coreRelativePath = coreRelativePath + `/${target}/index`;
+    coreRelativePath = slash(coreRelativePath + '/index');
 
+    let fileDirPath = fPath.replace(/[^/]+$/, '');
     try {
-        const dirPath = fPath.replace(/[^/]+$/, '');
-        mkdirp.sync(dirPath);
+        mkdirp.sync(fileDirPath);
     }
     catch (e) {}
 
@@ -68,12 +69,12 @@ function gulpPlugin(opt = {dest: './dist'}, compilers) {
             return cb();
         }
         if (file.isBuffer()) {
-            try {
-                compile(file, opt, compilers).then(_ => cb(null, file));
-            }
-            catch (e) {
-                log.error('[COMPILE ERROR]:', e);
-            }
+            compile(file, opt, compilers)
+                .then(_ => cb(null, file))
+                .catch(err => {
+                    log.error('[COMPILE ERROR]:', err);
+                    cb(null, file);
+                });
         }
     });
     return stream;

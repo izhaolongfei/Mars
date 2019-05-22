@@ -9,12 +9,10 @@ const merge = require('lodash.merge');
 const getDefaultConf = require('./defaultConfig');
 
 function getProjectConfig(options) {
-    const target = options.target || 'swan';
-
     let projectConfig = {};
     const configPath = path.resolve(process.cwd(), './mars.config.js');
     if (fs.existsSync(configPath)) {
-        projectConfig = require(configPath)(target);
+        projectConfig = require(configPath)(process.env.MARS_ENV_TARGET || options.target || 'swan');
     }
 
     return projectConfig;
@@ -23,8 +21,11 @@ function getProjectConfig(options) {
 // 兼容原 Task 的配置格式
 function formatConfig(options) {
     let config = getProjectConfig(options);
-    const {target} = options;
-    config = merge(getDefaultConf(target), config);
+    const {
+        target,
+        env
+    } = options;
+    config = merge(getDefaultConf({target, env}), config);
 
     config.dest = {
         path: config.dest,
@@ -66,12 +67,18 @@ function getRuntimeConfig({
     };
 }
 
+/**
+ * getConfig
+ *
+ * @param {mars.options} options options
+ * @return {mars.config}
+ */
 function getConfig(options) {
     if (!options && process.env.MARS_CLI_OPTIONS) {
         try {
             options = JSON.parse(process.env.MARS_CLI_OPTIONS);
         }
-        catch(e) {}
+        catch (e) {}
     }
     if (!options) {
         throw new Error('pass options to @marsjs/build or use @marsjs/cli');

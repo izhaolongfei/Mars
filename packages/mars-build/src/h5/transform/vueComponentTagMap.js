@@ -21,11 +21,13 @@ module.exports = {
     // 表单组件
     'button': `${prefixComp}button`,
     'checkbox': `${prefixComp}checkbox`,
+    'checkbox-group': `${prefixComp}checkbox-group`,
     'form': `${prefixComp}form`,
     'input': `${prefixComp}input`,
     'label': `${prefixComp}label`,
     'picker': `${prefixComp}picker`,
     'radio': `${prefixComp}radio`,
+    'radio-group': `${prefixComp}radio-group`,
     'slider': `${prefixComp}silder`,
     'switch': `${prefixComp}switch`,
     'textarea': `${prefixComp}textarea`,
@@ -41,5 +43,6 @@ module.exports = {
     'map': `${prefixComp}map`,
     // 画布
     'canvas': `${prefixComp}canvas`,
-    'web-view': `${prefixComp}web-view`
+    'web-view': `${prefixComp}web-view`,
+    'block': 'template'
 };

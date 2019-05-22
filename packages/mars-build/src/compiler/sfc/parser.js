@@ -5,7 +5,7 @@
 /* eslint-disable fecs-min-vars-per-destructure */
 
 const File = require('./File');
-const {parseComponent} = require('vue-template-compiler');
+const {parseComponent} = require('vue-template-compiler/build');
 
 function getLang(block, defaultLang) {
     return (block && block.attrs && block.attrs.lang) ? block.attrs.lang : defaultLang;
@@ -34,7 +34,8 @@ exports.parse = function parse(file, options) {
             attrs: script ? script.attrs : {}
         }
     });
-    const stylesArr = styles.filter(item => !item.attrs || (!item.attrs.target || item.attrs.target === target));
+    const stylesArr = styles.filter(item =>
+        !item.attrs || (!item.attrs.target || item.attrs.target === (process.env.MARS_ENV_TARGET || target)));
     const styleContent = stylesArr.reduce((stylestr, {content}) => `
 ${stylestr}
 ${content}

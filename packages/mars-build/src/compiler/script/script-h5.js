@@ -12,7 +12,8 @@ const transformMainPlugin = require('../../h5/transform/plugins/transformMainPlu
 const transformCompPlugin = require('../../h5/transform/plugins/transformCompPlugin');
 const transformRouterPlugin = require('../../h5/transform/plugins/transformRouterPlugin');
 const transformAppPlugin = require('../../h5/transform/plugins/transformAppPlugin');
-const MARS_ENV = 'h5';
+const transformGetAppPlugin = require('../../h5/transform/plugins/transformGetAppPlugin');
+const MARS_ENV = process.env.MARS_ENV_TARGET || 'h5';
 
 exports.preCompile = function (file) {
 };
@@ -67,8 +68,7 @@ exports.compileMain = function (content, options) {
         pages,
         tabBar,
         window = null,
-        pagesInfo,
-        appApi // 获取app.vue api，生成getApp方法
+        pagesInfo
     } = mainOptions;
     const mainRet = babel.transform(content.toString(), {
         plugins: [transformMainPlugin({
@@ -76,12 +76,12 @@ exports.compileMain = function (content, options) {
             window,
             mars: {
                 navigationBarHomeColor: mars && mars.navigationBarHomeColor || 'dark',
-                showNavigationBorder: mars && mars.showNavigationBorder || true,
+                showNavigationBorder: mars ? !!mars.showNavigationBorder : true,
+                useTransition: mars ? !!mars.useTransition : true,
                 homePage: `/${tabBar && tabBar.list && tabBar.list.length > 0 ? tabBar.list[0].pagePath : pages[0]}`
             },
             componentSet,
-            pagesInfo,
-            appApi
+            pagesInfo
         })]
     });
     const mainStr = babel.transformFromAst(mainRet.ast).code;
@@ -89,12 +89,23 @@ exports.compileMain = function (content, options) {
     return content;
 };
 
-exports.compileScript = function (content, {
-    isApp = false
-}) {
+
+const path = require('path');
+const {getUIModules, resolveComponentsPath} = require('./script');
+const compileModules = require('../file/compileModules');
+
+exports.compileScript = async function (content, options = {}) {
     if (!content) {
         return null;
     }
+
+    const {
+        isApp = false,
+        target,
+        dest,
+        path: filePath
+    } = options;
+
     let baseOptions = {}; // 收集 config 和 components
     content = content.replace(
         /process\.env\.MARS_ENV/g,
@@ -122,55 +133,72 @@ exports.compileScript = function (content, {
     scriptStr = babel.transformFromAst(cleanScriptAst.ast).code;
     content = new Buffer(scriptStr);
 
-    const {config = {}, components = {}, enableConfig = null, pageLifeApi = null, appApi = null} = baseOptions;
-    return {config, components, enableConfig, content, pageLifeApi, appApi};
+    const {config = {}, components = {}, enableConfig = null} = baseOptions;
+
+    const destPath = path.resolve(dest.path);
+    const uiModules = getUIModules(components, target);
+    let resolvedPaths = {};
+    content = babel.transform(content, {
+        plugins: [
+            [
+                path.resolve(__dirname, '../file/babel-plugin-relative-import.js'),
+                {
+                    filePath,
+                    cwd: path.resolve(process.cwd(), dest.path),
+                    modules: uiModules,
+                    resolvedPaths
+                }
+            ]
+        ]
+    }).code;
+
+    resolveComponentsPath(components, resolvedPaths);
+    await compileModules.compileUIModules(uiModules, destPath);
+
+    return {config, components, enableConfig, content};
 };
 
-exports.compileApp = function (options) {
-    const {
-        style,
-        script,
-        appScriptApi,
-        template,
-        appStyle
-    } = options;
-    let scriptStr = script;
-    if (appScriptApi) {
-        const scriptRet = babel.transform(script, {
-            plugins: [
-                transformAppPlugin({
-                    appScriptApi
-                })
-            ]
-        });
-        scriptStr = babel.transformFromAst(scriptRet.ast).code;
-    }
+exports.compileApp = function (script) {
+    const content = script.content;
+    let customExp = {}; // 收集 用户 自定义 数据和方法
+    const scriptRet = babel.transform(content, {
+        plugins: [
+            transformAppPlugin({
+                customExp
+            })
+        ]
+    });
+    let scriptStr = babel.transformFromAst(scriptRet.ast).code;
+    // 处理完再进行minify，发现minify和定制的插件会有坑
+    const cleanScriptAst = babel.transform(scriptStr, {
+        plugins: [
+            'minify-guarded-expressions',
+            'minify-dead-code-elimination'
+        ]
+    });
+    scriptStr = babel.transformFromAst(cleanScriptAst.ast).code;
+    script.content = new Buffer(scriptStr);
+    return customExp;
+};
 
-    let contentStr = '';
-
-    const {
-        content: cssContent,
-        attrs
-    } = appStyle;
-
-    contentStr = `
-<template>
-${template}
-</template>
-<script>
-${scriptStr}
-</script>
-<style lang="less" scoped>
-${style}
-</style>
-${cssContent
-    ? `
-<style ${attrs.lang ? `lang="${attrs.lang}"` : ''}>
-    ${cssContent}
-</style>`
-    : ''}
-`;
-    return new Buffer(contentStr);
+exports.compileGetApp = function (content, api) {
+    const scriptRet = babel.transform(content.toString(), {
+        plugins: [
+            transformGetAppPlugin({
+                api
+            })
+        ]
+    });
+    let scriptStr = babel.transformFromAst(scriptRet.ast).code;
+    // 处理完再进行minify，发现minify和定制的插件会有坑
+    const cleanScriptAst = babel.transform(scriptStr, {
+        plugins: [
+            'minify-guarded-expressions',
+            'minify-dead-code-elimination'
+        ]
+    });
+    scriptStr = babel.transformFromAst(cleanScriptAst.ast).code;
+    return new Buffer(scriptStr);
 };
 
 exports.compileApi = function (content, options) {

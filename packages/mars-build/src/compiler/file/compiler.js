@@ -2,7 +2,9 @@
  * @file gulp plugin file compiler
  * @author zhangwentao <winty2013@gmail.com>
  */
+
 /* eslint-disable fecs-min-vars-per-destructure */
+/* eslint-disable fecs-no-require */
 
 const through = require('through2');
 const gutil = require('gulp-util');
@@ -16,26 +18,55 @@ const {compile: compileStyle} = require('../style/style');
 const {getFileCompiler} = require('./base');
 const {isCSS, isJS, changeExt} = require('../../helper/path');
 const log = require('../../helper/log');
+const compileModules = require('./compileModules');
+const modules = compileModules.modules;
 
-function compileJS(content, options) {
+/**
+ * 编译 JS
+ *
+ * @param {string} content 文件内容
+ * @param {mars.options} options opt
+ * @return {babel.BabelFileResult}
+ */
+async function compileJS(content, options) {
     const {
         target
     } = options;
+    const buildConfig = options._config;
 
     content = content.replace(
         /process\.env\.MARS_ENV/g,
-        JSON.stringify(target)
+        JSON.stringify(process.env.MARS_ENV_TARGET || target)
     ).replace(
         /process\.env\.NODE_ENV/g,
         JSON.stringify(process.env.NODE_ENV || 'development')
     );
 
-    return transformSync(content, {
+    let usedModules = {};
+    let res = transformSync(content, {
         plugins: [
+            [
+                path.resolve(__dirname, './babel-plugin-relative-import.js'),
+                {
+                    filePath: options.path,
+                    cwd: path.resolve(process.cwd(), './src'),
+                    modules,
+                    usedModules
+                }
+            ],
             'minify-guarded-expressions',
             'minify-dead-code-elimination'
         ]
     });
+
+    const destPath = path.resolve(buildConfig.dest.path);
+    const usedModuleKeys = Object.keys(usedModules);
+    for (let i = 0; i < usedModuleKeys.length; i++) {
+        const item = usedModuleKeys[i];
+        await compileModules.compile(item, usedModules[item], destPath);
+    }
+
+    return res;
 }
 
 async function compile(file, options) {
@@ -69,12 +100,12 @@ exports.gulpPlugin = function (options) {
             return cb();
         }
         if (file.isBuffer()) {
-            try {
-                compile(file, options).then(_ => cb(null, file));
-            }
-            catch (e) {
-                log.error('[COMPILE ERROR]:', e);
-            }
+            compile(file, options)
+                .then(_ => cb(null, file))
+                .catch(err => {
+                    log.error('[COMPILE ERROR]:', err);
+                    cb(null, file);
+                });
             return;
         }
         // for other file type

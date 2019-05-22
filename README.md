@@ -27,8 +27,8 @@ mars build [--target, -t swan (default) | wx | h5]
 
 ```
 
-更多教程请访问 [https://max-team.github.io/mars/](https://max-team.github.io/mars/)
-
+## 文档教程
+[https://max-team.github.io/Mars/](https://max-team.github.io/Mars/)
 
 ## 案例
 
@@ -36,16 +36,30 @@ mars build [--target, -t swan (default) | wx | h5]
 
 | | 百度智能小程序 | H5 |
 |-|-|-|
-| 装馨家 | ![](./docs/assets/qr-jiazhuang.png) | ![](./docs/assets/qr-jiazhuang-h5.png) |
-| 健康养生说 | ![](./docs/assets/qr-yangsheng.png) | ![](./docs/assets/qr-yangsheng-h5.png) |
+| 装馨家 | ![](./docs/assets/qr-jiazhuang.png) | [![](./docs/assets/qr-jiazhuang-h5.png)](https://jia.baidu.com/m#/pages/home/index) |
+| 健康养生说 | ![](./docs/assets/qr-yangsheng.png) | [![](./docs/assets/qr-yangsheng-h5.png)](https://sp0.baidu.com/5LMDcjW6BwF3otqbppnN2DJv/health.pae.baidu.com/medauth/healthpage/#/pages/list/index) |
 
 ### 小程序案例
 
 | 百度百聘 | AI 画报大师 | AI 福利图 | 百度作业模式 |
 |-|-|-|-|
 | ![](./docs/assets/qr-baipin.png) | ![](./docs/assets/qr-huabao.png) | ![](./docs/assets/qr-fuli.png) | ![](./docs/assets/qr-zuoye.png) |
+
+## Packages & CHANGELOGs
+
+| package | version | CHANGELOG |
+|-|-|-|
+| @marsjs/cli | [![](https://img.shields.io/npm/v/@marsjs/cli.svg)](https://www.npmjs.com/package/@marsjs/cli) | [CHANGELOG](https://max-team.github.io/Mars/CHANGELOGS/cli.html) |
+| @marsjs/cli-template | [![](https://img.shields.io/npm/v/@marsjs/cli-template.svg)](https://www.npmjs.com/package/@marsjs/cli-template) | [CHANGELOG](https://max-team.github.io/Mars/CHANGELOGS/cli-template.html) |
+| @marsjs/core | [![](https://img.shields.io/npm/v/@marsjs/core.svg)](https://www.npmjs.com/package/@marsjs/core) | [CHANGELOG](https://max-team.github.io/Mars/CHANGELOGS/core.html) |
+| @marsjs/build | [![](https://img.shields.io/npm/v/@marsjs/build.svg)](https://www.npmjs.com/package/@marsjs/build) | [CHANGELOG](https://max-team.github.io/Mars/CHANGELOGS/build.html) |
+| @marsjs/api | [![](https://img.shields.io/npm/v/@marsjs/api.svg)](https://www.npmjs.com/package/@marsjs/api) | [CHANGELOG](https://max-team.github.io/Mars/CHANGELOGS/api.html) |
+| @marsjs/components | [![](https://img.shields.io/npm/v/@marsjs/components.svg)](https://www.npmjs.com/package/@marsjs/components) | |
+
 ## Contributing & Discussion
 
 请参考 [如何贡献](./CONTRIBUTING.md)
 
 欢迎提 Issue 和 PR。
+
+百度员工可以加 Hi 群：1659354

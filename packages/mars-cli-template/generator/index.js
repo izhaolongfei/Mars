@@ -23,8 +23,8 @@ module.exports = async (api, options) => {
         // 添加 h5 所需的依赖
         api.extendPackage({
             scripts: {
-                'serve-dist-h5': 'mars-cli-service serve --path ./dist-h5',
-                'build-dist-h5': 'mars-cli-service build --path ./dist-h5'
+                'serve-dist-h5': 'mars-cli-service serve',
+                'build-dist-h5': 'mars-cli-service build'
             },
             dependencies: {
                 'vue': '^2.6.6',
@@ -35,7 +35,7 @@ module.exports = async (api, options) => {
             devDependencies: {
                 'atom-web-compiler': '^2.2.0',
                 'atom2vue-loader': '^1.0.0',
-                '@marsjs/vue-cli-plugin-mars-web': '0.0.9',
+                '@marsjs/vue-cli-plugin-mars-web': '^0.0.9',
                 '@vue/cli-plugin-babel': '^3.0.0',
                 '@vue/cli-service': '^3.5.0',
                 'less': '^3.0.4',
@@ -57,8 +57,8 @@ module.exports = async (api, options) => {
             'serve:wx': 'mars serve -t wx'
         },
         dependencies: {
-            '@marsjs/build': '^0.2.0-alpha.8',
-            '@marsjs/core': '^0.2.0-alpha.6'
+            '@marsjs/build': '^0.2.0',
+            '@marsjs/core': '^0.2.0'
         },
         devDependencies: {
             '@vue/cli': '^3.3.0'

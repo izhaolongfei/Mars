@@ -3,16 +3,24 @@
  * @author zhangwentao <winty2013@gmail.com>
  */
 
-module.exports = function (target) {
+module.exports = function (options = {target: 'swan'}) {
+    const {
+        target,
+        env
+    } = options;
     const config = {
         projectFiles: ['project.swan.json', 'project.config.json'],
         source: ['src/**/*.vue'],
-        dest: target === 'h5' ? './dist-h5/src' : `./dist-${target}`,
-        assets: [
+        dest: target === 'h5' ? `./dist-${env || 'h5'}/src` : `./dist-${target}`,
+        assets: target === 'h5' ? [
+            'src/**/*.!(vue|swan|wxml)'
+        ]
+        : [
             'src/**/*.!(vue)'
         ],
         designWidth: 750,
         watch: ['src/**/*'],
+        framework: {},
         modules: {
             postcss: {
                 px2units: {
@@ -36,7 +44,7 @@ module.exports = function (target) {
         },
         postprocessors: {
             postcss: {
-                extnames: ['less', 'sass', 'scss', 'stylus', 'styl'],
+                extnames: ['css', 'less', 'sass', 'scss', 'stylus', 'styl'],
                 options: {
                     plugins: [require('autoprefixer')]
                 }
